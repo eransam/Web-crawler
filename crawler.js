@@ -3,17 +3,40 @@
 //html של האתר הנסרק יהיה בתוך המשתנה  html ובמידה והרספונס סטטוס הוא 200 אז הבקשה עברה בהצלחה ואז כל ה
 var request= require("request");
 
+
+if (typeof localStorage === "undefined" || localStorage === null) {
+    var LocalStorage = require('node-localstorage').LocalStorage;
+    localStorage = new LocalStorage('./scratch');
+  }
+
+
+
+
 // מייביאים את סיפריית הסקראפינג
 var cheerio= require("cheerio");
 
 // מייבאים את הסיפריה שיוצרת קבצים
 var fs= require("fs");
 
-var readline= require('readline');
+// var readline= require('readline');
 
-const url= "https://wiprodigital.com";
-const dp= 2;
+const oneUrl= "https://wiprodigital.com";
+// const dp= 2;
+var eransam ="sam";
+var siteMap = [];
+var arrUrl =[];
+arrUrl.push(oneUrl);
 
+function returnValue(params) {
+    arrUrl =params.externalLinks;
+}
+
+//url כאן אנו ניצור אובייקט המכיל 3 מערכים שבעתיד יכילו את המידע המבוקש שאני נרצה להוציא מה 
+siteMap= {
+    linksUnderTheSameDomain: [],
+    externalLinks: [],
+    images: []
+};
 
 
 
@@ -23,24 +46,26 @@ const arr = [];
 console.log("eran");
 
 
-// כאן אנו יוצרים משתנה אשר מכיל פונקצית קול-באק
-exports.crawl= function(callback){
 
+// כאן אנו יוצרים משתנה אשר מכיל פונקצית קול-באק
+exports.crawl= async function(FileName , depth){
+    for (let index = 0; index < depth; index++) {
+        if (index>0) {
+            const str123 = localStorage.getItem('myFirstKey')
+            arrUrl = JSON.parse(str123);
+        }
+        console.log("arrUrl123: " ,arrUrl);
+
+
+    for (const url of arrUrl) {
+        
     //וכפרמטר ראשון אנו נותנים לה את הכתובת לסריקה request אשר זימנו מסיפריית  request ובתוכה אנו מפעילים את פונ ה
     // וכפרמטר שני אנו נותנים לה את הפונ המובנת אשר מקבלת 3 פרמטרים
-    request(url, function(error, response, html){
+     request(url, function(error, response, html){
         if(!error){
 
             //$ תחת המשתנה  cheerioאנו נטען לסיפריית ה html  ואת כל ה  request שהכנסנו לפונ ה url מהכתובת  htmlהוא פלט ה html הפרמטר
             var $ = cheerio.load(html);
-            
-            //url כאן אנו ניצור אובייקט המכיל 3 מערכים שבעתיד יכילו את המידע המבוקש שאני נרצה להוציא מה 
-            var siteMap= {
-                linksUnderTheSameDomain: [],
-                externalLinks: [],
-                images: []
-            };
-
 
             //($) url אשר נמצאים ב  [href] כך אנו נעבור על כל התגים - $("*[href]").each
             //link וכל הערך אשר נמצא תחת התגים הזו אנו נכניס לתוך המשתנה 
@@ -119,35 +144,35 @@ exports.crawl= function(callback){
             }
 
             // "" המכיל כרגע את ערך ריק  siteMap.txt ולאחר מיכן אנו נייצר קובץ בתוך התיקייה הזו בשם
-            fs.writeFileSync('./siteMap/siteMap.txt', '');
+            fs.writeFileSync(`./siteMap/${FileName + index}.txt`, '');
             
             // לאחר מכן אנו נכניס את הסטרינג הזה לקובץ
-            fs.appendFileSync('./siteMap/siteMap.txt', 'Links Under The Same Domain\n\n');
+            fs.appendFileSync(`./siteMap/${FileName + index}.txt`, 'Links Under The Same Domain\n\n');
             
             //ונכניס לינק לינק לתוך הקובץ שיצרנו linksUnderTheSameDomain על כל האובייקטים הנמצאים בתוך הפרופרטי forEach ולאחר מכן אנו נרוץ בעזרת הפונ 
             siteMap.linksUnderTheSameDomain.forEach(function(link){
-                fs.appendFileSync('./siteMap/siteMap.txt', link+'\n');
+                fs.appendFileSync(`./siteMap/${FileName + index}.txt`, link+'\n');
             });
     
-            fs.appendFileSync('./siteMap/siteMap.txt', '\n\n\n');
+            fs.appendFileSync(`./siteMap/${FileName + index}.txt`, '\n\n\n');
     
             // לאחר מכן נעשה את אותה פעולה על הלינקים מהפרופרטי הנוספים
-            fs.appendFileSync('./siteMap/siteMap.txt', 'External Links\n\n');
+            fs.appendFileSync(`./siteMap/${FileName + index}.txt`, 'External Links\n\n');
     
             // כנ''ל
             siteMap.externalLinks.forEach(function(link){
-                fs.appendFileSync('./siteMap/siteMap.txt', link+'\n');
+                fs.appendFileSync(`./siteMap/${FileName + index}.txt`, link+'\n');
             });
 
             // כנ''ל
-            fs.appendFileSync('./siteMap/siteMap.txt', '\n\n\n');
+            fs.appendFileSync(`./siteMap/${FileName + index}.txt`, '\n\n\n');
     
             // כנ''ל
-            fs.appendFileSync('./siteMap/siteMap.txt', 'Images\n\n');
+            fs.appendFileSync(`./siteMap/${FileName + index}.txt`, 'Images\n\n');
             
             // כנ''ל
             siteMap.images.forEach(function(link){
-                fs.appendFileSync('./siteMap/siteMap.txt', link+'\n');
+                fs.appendFileSync(`./siteMap/${FileName + index}.txt`, link+'\n');
             });
     
 
@@ -155,135 +180,20 @@ exports.crawl= function(callback){
             // (siteMap) הפרמטר השני זה פונ שאנו נרצה להכניס כדי לשנות התנהגות מסויימת של הערכים
             // הפרמטר השלישי הוא כמות הרווחים בכל רווח הקיים בסטרינג שנוצר,   
             //  לדוג: עם יש בסטרינג רווח אחד אז הרווח הזה יהפוך ל2 רווחים
-            fs.writeFileSync('./siteMap/siteMap.json', JSON.stringify(siteMap, null, 2));
-            console.log("siteMap :" ,typeof(siteMap.externalLinks));
-            
-            let ex = siteMap.externalLinks;
-            console.log("ex: " , ex);
-for (let index = 0; index < dp; index++) {
-for (const iterator of ex) {
-    console.log("iterator: " , iterator);
-
-        (callback)=>{
-
-        request(iterator, function(error, response, html){
-            if(!error){
-                var $ = cheerio.load(html);
-        
-                var siteMap= {
-                    linksUnderTheSameDomain: [],
-                    externalLinks: [],
-                    images: []
-                };
+            fs.writeFileSync(`./siteMap/${FileName + index}.json`, JSON.stringify(siteMap, null, 2));
+             const tt = siteMap.externalLinks
+             const notesArrayJson = JSON.stringify(tt);
+              localStorage.setItem('myFirstKey', notesArrayJson);
     
-    
-                $("*[href]").each(function(){
-                    var link= $(this).attr('href');
-        
-                    if( link.startsWith(url) ){
-                        if(siteMap.linksUnderTheSameDomain.indexOf(link)== -1)
-                            siteMap.linksUnderTheSameDomain.push(link);
-                    }
-                    else if( !link.startsWith('/') && !link.startsWith('#') ){
-                        if(siteMap.externalLinks.indexOf(link)== -1)
-                            siteMap.externalLinks.push(link);
-                    }
-        
-                    if(link.endsWith('.jpeg') || link.endsWith('.jpg') || link.endsWith('.png') || link.endsWith('.gif') || link.endsWith('.tiff')){
-                        if(siteMap.images.indexOf(link)== -1)
-                            siteMap.images.push(link);
-                    }
-        
-                });
-        
-                $("*[src]").each(function(){
-                    var link= $(this).attr('src');
-        
-                    if( link.startsWith(url) ){
-                        if(siteMap.linksUnderTheSameDomain.indexOf(link)== -1)
-                            siteMap.linksUnderTheSameDomain.push(link);
-                    }
-                    else if( !link.startsWith('/') && !link.startsWith('#') ){
-                        if(siteMap.externalLinks.indexOf(link)== -1)
-                        siteMap.externalLinks.push(link);
-                    }
-        
-                    if(link.endsWith('.jpeg') || link.endsWith('.jpg') || link.endsWith('.png') || link.endsWith('.gif') || link.endsWith('.tiff')){
-                        if(siteMap.images.indexOf(link)== -1)
-                            siteMap.images.push(link);
-                    }
-                });
-    
-    
-                
-         
-                // console.log("siteMap :" ,siteMap.externalLinks);
-                arr.push(siteMap);
-    
-                //logic to write to files
-                if (!fs.existsSync(`./siteMap`)){
-                    fs.mkdirSync(`./siteMap`);
-                }
-    
-                fs.writeFileSync(`./siteMap/siteMap${index}.txt`, '');
-        
-                fs.appendFileSync(`./siteMap/siteMap${index}.txt`, 'Links Under The Same Domain\n\n');
-        
-                siteMap.linksUnderTheSameDomain.forEach(function(link){
-                    fs.appendFileSync(`./siteMap/siteMap${index}.txt`, link+'\n');
-                });
-        
-                fs.appendFileSync(`./siteMap/siteMap${index}.txt`, '\n\n\n');
-        
-        
-                fs.appendFileSync(`./siteMap/siteMap${index}.txt`, 'External Links\n\n');
-        
-                siteMap.externalLinks.forEach(function(link){
-                    fs.appendFileSync(`./siteMap/siteMap${index}.txt`, link+'\n');
-                });
-        
-                fs.appendFileSync(`./siteMap/siteMap${index}.txt`, '\n\n\n');
-        
-        
-                fs.appendFileSync(`./siteMap/siteMap${index}.txt`, 'Images\n\n');
-        
-                siteMap.images.forEach(function(link){
-                    fs.appendFileSync(`./siteMap/siteMap${index}.txt`, link+'\n');
-                });
-        
-                fs.writeFileSync(`./siteMap/siteMap${index}.json`, JSON.stringify(siteMap, null, 2));
-    
-    
-                if(callback) callback("SUCCESS");
-            }
-            else{
-                if(callback) callback("ERROR");
-            }
-        });
-    
-    
-    };
-
-    
-
-
-
-    
-}
-    
-}
-
-
-            if(callback) callback("SUCCESS");
         }
-        else{
-            if(callback) callback("ERROR");
-        }
+
+
     });
+
+    }    
+
+
+}
 
 
 };
-
-
-
-
