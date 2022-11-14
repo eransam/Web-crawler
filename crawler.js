@@ -3,7 +3,7 @@
 //html של האתר הנסרק יהיה בתוך המשתנה  html ובמידה והרספונס סטטוס הוא 200 אז הבקשה עברה בהצלחה ואז כל ה
 var request= require("request");
 
-
+//וכך זימנו אותה לפרוייקט שלנו npm i node-localstorage הורדנו את סיפריית הלוקל סטורג' לנוד 
 if (typeof localStorage === "undefined" || localStorage === null) {
     var LocalStorage = require('node-localstorage').LocalStorage;
     localStorage = new LocalStorage('./scratch');
@@ -20,16 +20,23 @@ var fs= require("fs");
 
 // var readline= require('readline');
 
-const oneUrl= "https://wiprodigital.com";
-// const dp= 2;
-var eransam ="sam";
+// משתנה שבעתיד יכיל את כל רשימת הלינקים והתמונות
 var siteMap = [];
+
+// מערך שיכיל את לינקי הדפים לסריקה
 var arrUrl =[];
+
+// עומק
+var depth = 2;
+
+//fs שם התיקייה והקבצים אותם ניצור בהמשך דרך
+var FileName = "MyTest";
+
+// כתובת היואראל הראשונה לסריקה
+const oneUrl= "https://wiprodigital.com";
+
 arrUrl.push(oneUrl);
 
-function returnValue(params) {
-    arrUrl =params.externalLinks;
-}
 
 //url כאן אנו ניצור אובייקט המכיל 3 מערכים שבעתיד יכילו את המידע המבוקש שאני נרצה להוציא מה 
 siteMap= {
@@ -41,24 +48,25 @@ siteMap= {
 
 
 
-const arr = [];
-
-console.log("eran");
+// const arr = [];
 
 
+exports.crawl= async function(){
 
-// כאן אנו יוצרים משתנה אשר מכיל פונקצית קול-באק
-exports.crawl= async function(FileName , depth){
+    // לולאה אשר תרוץ מספר פעמים זהה לערך העומק
     for (let index = 0; index < depth; index++) {
         if (index>0) {
-            const str123 = localStorage.getItem('myFirstKey')
+            const str123 = await localStorage.getItem('myFirstKey')
             arrUrl = JSON.parse(str123);
         }
-        console.log("arrUrl123: " ,arrUrl);
 
 
+    // במידה ויש ערך במשתנה
+   if (arrUrl) {
+    
+  
     for (const url of arrUrl) {
-        
+        console.log(url);
     //וכפרמטר ראשון אנו נותנים לה את הכתובת לסריקה request אשר זימנו מסיפריית  request ובתוכה אנו מפעילים את פונ ה
     // וכפרמטר שני אנו נותנים לה את הפונ המובנת אשר מקבלת 3 פרמטרים
      request(url, function(error, response, html){
@@ -133,7 +141,7 @@ exports.crawl= async function(FileName , depth){
      
             // console.log("siteMap :" ,siteMap.externalLinks);
             //arr לאחר מכן אנו נידחוף את כל האובייקט הזה למערך בשם 
-            arr.push(siteMap);
+            // arr.push(siteMap);
 
             //logic to write to files
             //(./) הנמצא תיקייה אחת למעלה ממיקום זה siteMap כאן אנו בודקים אם אין בפרוייקט שלנו קובץ בשם 
@@ -190,7 +198,8 @@ exports.crawl= async function(FileName , depth){
 
     });
 
-    }    
+    }   
+} 
 
 
 }
